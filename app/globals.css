@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-slate-950 text-slate-100;
+}
+
+.ball-shadow {
+  box-shadow: inset -10px -12px 24px rgba(0, 0, 0, 0.2), 0 10px 24px rgba(0, 0, 0, 0.28);
+}
