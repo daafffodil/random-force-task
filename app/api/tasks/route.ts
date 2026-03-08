@@ -1,6 +1,7 @@
 import { supabaseErrorResponse } from "@/lib/supabase-errors";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { toTask } from "@/lib/task-mapper";
+import { ballPixelSize, ballSizeFromDuration, randomTaskColor } from "@/lib/task-utils";
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -27,9 +28,11 @@ export async function POST(request: Request) {
   }
 
   const supabase = getSupabaseAdmin();
+  const size = ballPixelSize(ballSizeFromDuration(duration));
+  const color = randomTaskColor();
   const { data, error } = await supabase
     .from("tasks")
-    .insert({ title, duration })
+    .insert({ title, duration, color, size, status: "pending" })
     .select("*")
     .single();
 
