@@ -11,13 +11,26 @@ export function ExecutionClient() {
 
   const [task, setTask] = useState<Task | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadTask() {
       if (!taskId) return;
       const response = await fetch("/api/tasks", { cache: "no-store" });
-      const tasks: Task[] = await response.json();
-      const selected = tasks.find((item) => item.id === taskId && item.status === "active") ?? null;
+      const payload = await response.json();
+
+      if (!response.ok) {
+        setError(payload?.error ?? "Unable to load tasks.");
+        return;
+      }
+
+      if (!Array.isArray(payload)) {
+        setError("Unexpected response format from /api/tasks.");
+        return;
+      }
+
+      setError(null);
+      const selected = (payload as Task[]).find((item) => item.id === taskId && item.status === "active") ?? null;
       setTask(selected);
       if (selected) {
         setSecondsLeft(selected.duration * 60);
@@ -59,6 +72,19 @@ export function ExecutionClient() {
     if (!task) return;
     await fetch(`/api/tasks/${task.id}/abandon`, { method: "POST" });
     router.replace("/");
+  }
+
+  if (error) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-slate-950 p-6 text-center">
+        <div className="space-y-4">
+          <p className="text-lg text-red-300">{error}</p>
+          <button className="rounded-lg bg-indigo-500 px-4 py-2" onClick={() => router.push("/")}>
+            Back to Task Pool
+          </button>
+        </div>
+      </main>
+    );
   }
 
   if (!task) {

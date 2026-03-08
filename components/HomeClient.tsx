@@ -12,11 +12,28 @@ export function HomeClient() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [drawing, setDrawing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function loadTasks() {
     const response = await fetch("/api/tasks", { cache: "no-store" });
-    const data: Task[] = await response.json();
-    setTasks(data);
+    const payload = await response.json();
+
+    if (!response.ok) {
+      setError(payload?.error ?? "Unable to load tasks.");
+      setTasks([]);
+      setLoading(false);
+      return;
+    }
+
+    if (!Array.isArray(payload)) {
+      setError("Unexpected response format from /api/tasks.");
+      setTasks([]);
+      setLoading(false);
+      return;
+    }
+
+    setError(null);
+    setTasks(payload as Task[]);
     setLoading(false);
   }
 
@@ -54,6 +71,7 @@ export function HomeClient() {
           </div>
 
           {loading ? <p>Loading balls...</p> : null}
+          {error ? <p className="mb-4 text-sm text-red-300">{error}</p> : null}
 
           <div className="flex min-h-48 flex-wrap items-end gap-5">
             {pending.map((task) => (

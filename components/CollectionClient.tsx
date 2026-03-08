@@ -7,12 +7,27 @@ import { useEffect, useMemo, useState } from "react";
 
 export function CollectionClient() {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadTasks() {
       const response = await fetch("/api/tasks", { cache: "no-store" });
-      const data: Task[] = await response.json();
-      setTasks(data);
+      const payload = await response.json();
+
+      if (!response.ok) {
+        setError(payload?.error ?? "Unable to load tasks.");
+        setTasks([]);
+        return;
+      }
+
+      if (!Array.isArray(payload)) {
+        setError("Unexpected response format from /api/tasks.");
+        setTasks([]);
+        return;
+      }
+
+      setError(null);
+      setTasks(payload as Task[]);
     }
 
     void loadTasks();
@@ -29,6 +44,7 @@ export function CollectionClient() {
       <Navbar />
       <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 pb-12">
         <h1 className="text-3xl font-black">Collection Box</h1>
+        {error ? <p className="text-sm text-red-300">{error}</p> : null}
         <div className="grid gap-4 md:grid-cols-2">
           <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
             <p className="text-sm text-slate-300">Total completed tasks</p>
