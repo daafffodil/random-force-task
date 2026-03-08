@@ -1,4 +1,6 @@
+import { supabaseErrorResponse } from "@/lib/supabase-errors";
 import { getSupabaseAdmin } from "@/lib/supabase";
+import { toTask } from "@/lib/task-mapper";
 import { NextResponse } from "next/server";
 
 export async function POST(
@@ -17,12 +19,12 @@ export async function POST(
     .maybeSingle();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return supabaseErrorResponse(error);
   }
 
   if (!data) {
     return NextResponse.json({ error: "Active task not found." }, { status: 404 });
   }
 
-  return NextResponse.json(data);
+  return NextResponse.json(toTask(data));
 }

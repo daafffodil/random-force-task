@@ -21,10 +21,11 @@ export function TaskForm({ onCreated }: TaskFormProps) {
       body: JSON.stringify({ title, duration }),
     });
 
+    const payload = await response.json();
     setSaving(false);
 
     if (!response.ok) {
-      alert("Unable to create task. Please try again.");
+      alert(payload?.error ?? "Unable to create task. Please try again.");
       return;
     }
 

@@ -51,3 +51,13 @@ Gamified task execution app built with Next.js, TypeScript, Tailwind CSS, and Su
 - `POST /api/tasks/draw` — randomly activate one pending task.
 - `POST /api/tasks/:id/complete` — mark active task done.
 - `POST /api/tasks/:id/abandon` — reset active task to pending.
+
+## Troubleshooting
+
+- Error: `relation "public.tasks" does not exist`
+  - Cause: the `tasks` table was not created in your Supabase project.
+  - Fix: open Supabase SQL Editor and run `supabase/migrations/001_create_tasks.sql`, then redeploy on Vercel.
+
+- Error: `permission denied for table tasks`
+  - Cause: the configured key cannot read/write the table.
+  - Fix: check RLS policies for `tasks`, or use a server-side service role key for API routes.

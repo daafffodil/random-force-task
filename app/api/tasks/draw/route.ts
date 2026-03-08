@@ -1,6 +1,7 @@
-import { randomPendingTask } from "@/lib/task-utils";
+import { supabaseErrorResponse } from "@/lib/supabase-errors";
 import { getSupabaseAdmin } from "@/lib/supabase";
-import { Task } from "@/lib/types";
+import { toTask } from "@/lib/task-mapper";
+import { randomPendingTask } from "@/lib/task-utils";
 import { NextResponse } from "next/server";
 
 export async function POST() {
@@ -14,28 +15,30 @@ export async function POST() {
     .maybeSingle();
 
   if (activeError) {
-    return NextResponse.json({ error: activeError.message }, { status: 500 });
+    return supabaseErrorResponse(activeError);
   }
 
   if (activeTask) {
     return NextResponse.json({ error: "A task is already active." }, { status: 409 });
   }
 
-  const { data: pendingTasks, error: pendingError } = await supabase
+  const { data: pendingRows, error: pendingError } = await supabase
     .from("tasks")
     .select("*")
     .eq("status", "pending");
 
   if (pendingError) {
-    return NextResponse.json({ error: pendingError.message }, { status: 500 });
+    return supabaseErrorResponse(pendingError);
   }
 
-  const selected = randomPendingTask((pendingTasks ?? []) as Task[]);
+  const pendingTasks = (pendingRows ?? []).map(toTask);
+  const selected = randomPendingTask(pendingTasks);
+
   if (!selected) {
     return NextResponse.json({ error: "No pending tasks available." }, { status: 404 });
   }
 
-  const { data: updated, error: updateError } = await supabase
+  const { data: updatedRow, error: updateError } = await supabase
     .from("tasks")
     .update({ status: "active" })
     .eq("id", selected.id)
@@ -44,8 +47,8 @@ export async function POST() {
     .single();
 
   if (updateError) {
-    return NextResponse.json({ error: updateError.message }, { status: 500 });
+    return supabaseErrorResponse(updateError);
   }
 
-  return NextResponse.json(updated);
+  return NextResponse.json(toTask(updatedRow));
 }

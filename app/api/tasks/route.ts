@@ -1,7 +1,6 @@
-import { ballSizeFromDuration, randomTaskColor } from "@/lib/task-utils";
+import { supabaseErrorResponse } from "@/lib/supabase-errors";
 import { getSupabaseAdmin } from "@/lib/supabase";
-import { Task } from "@/lib/types";
-import { randomUUID } from "crypto";
+import { toTask } from "@/lib/task-mapper";
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -12,10 +11,10 @@ export async function GET() {
     .order("created_at", { ascending: false });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return supabaseErrorResponse(error);
   }
 
-  return NextResponse.json((data ?? []) satisfies Task[]);
+  return NextResponse.json((data ?? []).map(toTask));
 }
 
 export async function POST(request: Request) {
@@ -27,27 +26,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid title or duration" }, { status: 400 });
   }
 
-  const newTask: Task = {
-    id: randomUUID(),
-    title,
-    duration,
-    color: randomTaskColor(),
-    size: ballSizeFromDuration(duration),
-    status: "pending",
-    created_at: new Date().toISOString(),
-    completed_at: null,
-  };
-
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
     .from("tasks")
-    .insert(newTask)
+    .insert({ title, duration })
     .select("*")
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return supabaseErrorResponse(error);
   }
 
-  return NextResponse.json(data satisfies Task, { status: 201 });
+  return NextResponse.json(toTask(data), { status: 201 });
 }
