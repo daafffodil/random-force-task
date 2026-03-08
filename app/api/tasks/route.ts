@@ -32,7 +32,7 @@ export async function POST(request: Request) {
   const color = randomTaskColor();
   const { data, error } = await supabase
     .from("tasks")
-    .insert({ title, duration, color, size })
+    .insert({ title, duration, color, size, status: "pending" })
     .select("*")
     .single();
 
