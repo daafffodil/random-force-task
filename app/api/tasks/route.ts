@@ -1,4 +1,3 @@
-import { getMemoryStore } from "@/lib/local-store";
 import { ballSizeFromDuration, randomTaskColor } from "@/lib/task-utils";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { Task } from "@/lib/types";
@@ -7,20 +6,16 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   const supabase = getSupabaseAdmin();
-  if (supabase) {
-    const { data, error } = await supabase
-      .from("tasks")
-      .select("*")
-      .order("created_at", { ascending: false });
+  const { data, error } = await supabase
+    .from("tasks")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    return NextResponse.json(data satisfies Task[]);
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json(getMemoryStore());
+  return NextResponse.json((data ?? []) satisfies Task[]);
 }
 
 export async function POST(request: Request) {
@@ -44,21 +39,15 @@ export async function POST(request: Request) {
   };
 
   const supabase = getSupabaseAdmin();
-  if (supabase) {
-    const { data, error } = await supabase
-      .from("tasks")
-      .insert(newTask)
-      .select("*")
-      .single();
+  const { data, error } = await supabase
+    .from("tasks")
+    .insert(newTask)
+    .select("*")
+    .single();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    return NextResponse.json(data satisfies Task, { status: 201 });
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const store = getMemoryStore();
-  store.unshift(newTask);
-  return NextResponse.json(newTask, { status: 201 });
+  return NextResponse.json(data satisfies Task, { status: 201 });
 }

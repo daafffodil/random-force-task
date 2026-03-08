@@ -1,4 +1,3 @@
-import { getMemoryStore } from "@/lib/local-store";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { NextResponse } from "next/server";
 
@@ -8,29 +7,21 @@ export async function POST(
 ) {
   const supabase = getSupabaseAdmin();
 
-  if (supabase) {
-    const { data, error } = await supabase
-      .from("tasks")
-      .update({ status: "pending" })
-      .eq("id", params.id)
-      .eq("status", "active")
-      .select("*")
-      .single();
+  const { data, error } = await supabase
+    .from("tasks")
+    .update({ status: "pending" })
+    .eq("id", params.id)
+    .eq("status", "active")
+    .select("*")
+    .maybeSingle();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    return NextResponse.json(data);
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const store = getMemoryStore();
-  const task = store.find((item) => item.id === params.id && item.status === "active");
-
-  if (!task) {
+  if (!data) {
     return NextResponse.json({ error: "Active task not found." }, { status: 404 });
   }
 
-  task.status = "pending";
-  return NextResponse.json(task);
+  return NextResponse.json(data);
 }

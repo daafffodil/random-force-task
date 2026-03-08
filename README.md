@@ -16,7 +16,7 @@ Gamified task execution app built with Next.js, TypeScript, Tailwind CSS, and Su
 - Next.js (App Router)
 - React + TypeScript
 - Tailwind CSS
-- Supabase (with in-memory fallback if env vars are missing)
+- Supabase (database-driven API)
 
 ## Setup
 
@@ -32,7 +32,7 @@ Gamified task execution app built with Next.js, TypeScript, Tailwind CSS, and Su
    cp .env.example .env.local
    ```
 
-3. Fill in Supabase values in `.env.local`.
+3. Fill in Supabase values in `.env.local` (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`).
 
 4. Run migration SQL in Supabase:
 
